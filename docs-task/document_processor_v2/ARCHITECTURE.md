@@ -4,25 +4,25 @@
 
 ```mermaid
 graph TB
-    Client[Client] -->|"1. process_document()"| DP[DocumentProcessor]
+    Client --> DP["DocumentProcessor"]
     
     subgraph "Document Processor V2"
-        DP -->|"2. generate_markup()"| AM[AssistantManager]
-        DP -->|"5. generate_template()"| AM
+        DP --> AM["AssistantManager"]
+        DP --> AM
         
         subgraph "Assistant Manager"
-            AM -->|"3. Create/Get"| Assistants[Assistant Pool]
-            AM -->|"4. Manage"| Cache[Markup Cache]
-            AM -->|"6. Manage"| Files[Files]
-            AM -->|"7. Manage"| Threads[Threads]
+            AM --> Assistants["Assistant Pool"]
+            AM --> Cache["Markup Cache"]
+            AM --> Files["Files"]
+            AM --> Threads["Threads"]
         end
     end
     
-    Assistants -->|"Markup"| MA[Markup Assistant\nGPT-4 Vision]
-    Assistants -->|"Templates"| TA[Template Assistant\nGPT-4 Turbo]
+    Assistants --> MA["Markup Assistant\nGPT-4 Vision"]
+    Assistants --> TA["Template Assistant\nGPT-4 Turbo"]
     
-    MA -->|"Analysis"| Image[Image]
-    TA -->|"Generation"| DSL[YAML DSL]
+    MA --> Image["Image Analysis"]
+    TA --> DSL["YAML DSL Generation"]
 ```
 
 ## Взаимодействие с OpenAI Assistant API
