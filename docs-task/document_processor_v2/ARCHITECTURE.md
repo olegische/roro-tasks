@@ -4,25 +4,25 @@
 
 ```mermaid
 graph TB
-    Client[Клиент] --> |"1. process_document()"| DP[DocumentProcessor]
+    Client[Клиент] -->|"1. process_document()"| DP[DocumentProcessor]
     
     subgraph "Document Processor V2"
-        DP --> |"2. generate_markup()"| AM[AssistantManager]
-        DP --> |"5. generate_template()"| AM
+        DP -->|"2. generate_markup()"| AM[AssistantManager]
+        DP -->|"5. generate_template()"| AM
         
         subgraph "Assistant Manager"
-            AM --> |"3. Создание/получение"| Assistants[Пул ассистентов]
-            AM --> |"4. Управление"| Cache[Кэш разметки]
-            AM --> |"6. Управление"| Files[Файлы]
-            AM --> |"7. Управление"| Threads[Треды]
+            AM -->|"3. Создание/получение"| Assistants[Пул ассистентов]
+            AM -->|"4. Управление"| Cache[Кэш разметки]
+            AM -->|"6. Управление"| Files[Файлы]
+            AM -->|"7. Управление"| Threads[Треды]
         end
     end
     
-    Assistants --> |"Разметка"| MA[Markup Assistant\nGPT-4 Vision]
-    Assistants --> |"Шаблоны"| TA[Template Assistant\nGPT-4 Turbo]
+    Assistants -->|"Разметка"| MA[Markup Assistant\nGPT-4 Vision]
+    Assistants -->|"Шаблоны"| TA[Template Assistant\nGPT-4 Turbo]
     
-    MA --> |"Анализ"| Image[Изображение]
-    TA --> |"Генерация"| DSL[YAML DSL]
+    MA -->|"Анализ"| Image[Изображение]
+    TA -->|"Генерация"| DSL[YAML DSL]
 ```
 
 ## Взаимодействие с OpenAI Assistant API
@@ -146,26 +146,26 @@ classDiagram
 ```mermaid
 graph LR
     subgraph "AssistantManager"
-        Init[Инициализация] --> |"Создание/получение"| Pool[Пул ассистентов]
-        Pool --> |"Хранение ID"| Cache[Кэш ассистентов]
+        Init[Инициализация] -->|"Создание/получение"| Pool[Пул ассистентов]
+        Pool -->|"Хранение ID"| Cache[Кэш ассистентов]
         Pool --> MA[Markup Assistant]
         Pool --> TA[Template Assistant]
     end
     
-    MA --> |"GPT-4 Vision"| Vision[Анализ изображений]
-    TA --> |"GPT-4 Turbo"| DSL[Генерация DSL]
+    MA -->|"GPT-4 Vision"| Vision[Анализ изображений]
+    TA -->|"GPT-4 Turbo"| DSL[Генерация DSL]
 ```
 
 ### 2. Кэширование разметки
 ```mermaid
 graph TD
     subgraph "Кэширование"
-        Check[Проверка кэша] --> |"Есть"| Get[Получение разметки]
-        Check --> |"Нет"| Gen[Генерация новой]
+        Check[Проверка кэша] -->|"Есть"| Get[Получение разметки]
+        Check -->|"Нет"| Gen[Генерация новой]
         Gen --> Save[Сохранение в кэш]
         
-        Save --> |"JSON"| FS[Файловая система]
-        Get --> |"JSON"| Use[Использование]
+        Save -->|"JSON"| FS[Файловая система]
+        Get -->|"JSON"| Use[Использование]
     end
 ```
 
@@ -174,10 +174,10 @@ graph TD
 graph TD
     subgraph "Механизм повторных попыток"
         Err[Ошибка] --> Retry[Повторная попытка]
-        Retry --> |"Успех"| Success[Завершение]
-        Retry --> |"Ошибка"| Check[Проверка попыток]
-        Check --> |"Есть попытки"| Retry
-        Check --> |"Нет попыток"| Fail[Ошибка выполнения]
+        Retry -->|"Успех"| Success[Завершение]
+        Retry -->|"Ошибка"| Check[Проверка попыток]
+        Check -->|"Есть попытки"| Retry
+        Check -->|"Нет попыток"| Fail[Ошибка выполнения]
     end
 ```
 
