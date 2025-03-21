@@ -4,25 +4,25 @@
 
 ```mermaid
 graph TB
-    Client[Клиент] -->|"1. process_document()"| DP[DocumentProcessor]
+    Client[Client] -->|"1. process_document()"| DP[DocumentProcessor]
     
     subgraph "Document Processor V2"
         DP -->|"2. generate_markup()"| AM[AssistantManager]
         DP -->|"5. generate_template()"| AM
         
         subgraph "Assistant Manager"
-            AM -->|"3. Создание/получение"| Assistants[Пул ассистентов]
-            AM -->|"4. Управление"| Cache[Кэш разметки]
-            AM -->|"6. Управление"| Files[Файлы]
-            AM -->|"7. Управление"| Threads[Треды]
+            AM -->|"3. Create/Get"| Assistants[Assistant Pool]
+            AM -->|"4. Manage"| Cache[Markup Cache]
+            AM -->|"6. Manage"| Files[Files]
+            AM -->|"7. Manage"| Threads[Threads]
         end
     end
     
-    Assistants -->|"Разметка"| MA[Markup Assistant\nGPT-4 Vision]
-    Assistants -->|"Шаблоны"| TA[Template Assistant\nGPT-4 Turbo]
+    Assistants -->|"Markup"| MA[Markup Assistant\nGPT-4 Vision]
+    Assistants -->|"Templates"| TA[Template Assistant\nGPT-4 Turbo]
     
-    MA -->|"Анализ"| Image[Изображение]
-    TA -->|"Генерация"| DSL[YAML DSL]
+    MA -->|"Analysis"| Image[Image]
+    TA -->|"Generation"| DSL[YAML DSL]
 ```
 
 ## Взаимодействие с OpenAI Assistant API
@@ -35,33 +35,33 @@ sequenceDiagram
     participant TH as Thread
     participant FL as Files
 
-    Note over AM,API: Инициализация ассистента
-    AM->>API: Создание ассистента
+    Note over AM,API: Assistant Initialization
+    AM->>API: Create Assistant
     API-->>AM: assistant_id
     
-    Note over AM,API: Загрузка файла
-    AM->>API: Загрузка файла
+    Note over AM,API: File Upload
+    AM->>API: Upload File
     API-->>AM: file_id
     
-    Note over AM,API: Создание треда
-    AM->>API: Создание треда
+    Note over AM,API: Thread Creation
+    AM->>API: Create Thread
     API-->>AM: thread_id
     
-    Note over AM,API: Отправка сообщения
-    AM->>API: Добавление сообщения в тред
+    Note over AM,API: Message Sending
+    AM->>API: Add Message to Thread
     API-->>AM: message_id
     
-    Note over AM,API: Запуск обработки
-    AM->>API: Создание run
+    Note over AM,API: Start Processing
+    AM->>API: Create Run
     API-->>AM: run_id
     
-    loop Проверка статуса
-        AM->>API: Получение статуса run
+    loop Check Status
+        AM->>API: Get Run Status
         API-->>AM: status
         alt status == completed
-            API-->>AM: Результат
+            API-->>AM: Result
         else status == failed
-            API-->>AM: Ошибка
+            API-->>AM: Error
         end
     end
 ```
@@ -70,22 +70,22 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant C as Клиент
+    participant C as Client
     participant DP as DocumentProcessor
     participant AM as AssistantManager
     participant MA as Markup Assistant
     participant TA as Template Assistant
-    participant Cache as Кэш разметки
+    participant Cache as Markup Cache
 
     C->>DP: process_document(image, query)
     
     DP->>AM: generate_markup(image)
     AM->>Cache: get_cached_markup(image)
     
-    alt Есть в кэше
+    alt Cache Hit
         Cache-->>AM: cached_markup
         AM-->>DP: cached_markup
-    else Нет в кэше
+    else Cache Miss
         AM->>MA: create_thread()
         AM->>MA: upload_file(image)
         MA-->>AM: file_id
@@ -146,38 +146,38 @@ classDiagram
 ```mermaid
 graph LR
     subgraph "AssistantManager"
-        Init[Инициализация] -->|"Создание/получение"| Pool[Пул ассистентов]
-        Pool -->|"Хранение ID"| Cache[Кэш ассистентов]
+        Init[Initialization] -->|"Create/Get"| Pool[Assistant Pool]
+        Pool -->|"Store ID"| Cache[Assistant Cache]
         Pool --> MA[Markup Assistant]
         Pool --> TA[Template Assistant]
     end
     
-    MA -->|"GPT-4 Vision"| Vision[Анализ изображений]
-    TA -->|"GPT-4 Turbo"| DSL[Генерация DSL]
+    MA -->|"GPT-4 Vision"| Vision[Image Analysis]
+    TA -->|"GPT-4 Turbo"| DSL[DSL Generation]
 ```
 
 ### 2. Кэширование разметки
 ```mermaid
 graph TD
-    subgraph "Кэширование"
-        Check[Проверка кэша] -->|"Есть"| Get[Получение разметки]
-        Check -->|"Нет"| Gen[Генерация новой]
-        Gen --> Save[Сохранение в кэш]
+    subgraph "Caching"
+        Check[Cache Check] -->|"Hit"| Get[Get Markup]
+        Check -->|"Miss"| Gen[Generate New]
+        Gen --> Save[Save to Cache]
         
-        Save -->|"JSON"| FS[Файловая система]
-        Get -->|"JSON"| Use[Использование]
+        Save -->|"JSON"| FS[File System]
+        Get -->|"JSON"| Use[Use]
     end
 ```
 
 ### 3. Обработка ошибок
 ```mermaid
 graph TD
-    subgraph "Механизм повторных попыток"
-        Err[Ошибка] --> Retry[Повторная попытка]
-        Retry -->|"Успех"| Success[Завершение]
-        Retry -->|"Ошибка"| Check[Проверка попыток]
-        Check -->|"Есть попытки"| Retry
-        Check -->|"Нет попыток"| Fail[Ошибка выполнения]
+    subgraph "Retry Mechanism"
+        Err[Error] --> Retry[Retry]
+        Retry -->|"Success"| Success[Complete]
+        Retry -->|"Error"| Check[Check Attempts]
+        Check -->|"Attempts Left"| Retry
+        Check -->|"No Attempts"| Fail[Execution Error]
     end
 ```
 
